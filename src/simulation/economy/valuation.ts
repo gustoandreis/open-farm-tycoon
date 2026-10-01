@@ -20,13 +20,21 @@ export function inventoryValue(state: GameState): number {
 }
 
 export function totalDebt(state: GameState): number {
-  return round(state.loans.reduce((s, l) => s + l.remainingBalance, 0), 2);
+  return round(
+    state.loans.reduce((s, l) => s + l.remainingBalance, 0),
+    2,
+  );
 }
 
 /** Estimated net worth: cash + assets - debt. */
 export function netWorth(state: GameState): number {
   return round(
-    state.money + landValue(state) + buildingsValue(state) + machinesValue(state) + inventoryValue(state) - totalDebt(state),
+    state.money +
+      landValue(state) +
+      buildingsValue(state) +
+      machinesValue(state) +
+      inventoryValue(state) -
+      totalDebt(state),
     2,
   );
 }

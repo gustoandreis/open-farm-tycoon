@@ -36,7 +36,14 @@ import type {
   YearSummary,
 } from './types';
 import { initWeather, advanceWeather } from './weather/weather';
-import { assignWorker, fireWorker, hireWorker, paySalaries, refreshCandidates, workforce } from './workers/workers';
+import {
+  assignWorker,
+  fireWorker,
+  hireWorker,
+  paySalaries,
+  refreshCandidates,
+  workforce,
+} from './workers/workers';
 import { buyParcel } from './world/land';
 import { forEachParcelTile, generateWorld, parcelPrice, ownedTileCount } from './world/map';
 
@@ -110,7 +117,13 @@ export function createNewState(opts: NewGameOptions): GameState {
     finance: { negativeDays: 0, status: 'ok' },
     tutorial: { active: true, step: 0, completed: false, skipped: false },
     workUsed: { prepare: 0, plant: 0, harvest: 0, irrigate: 0 },
-    year: { current: toDate(0).year, startRevenue: 0, startExpenses: 0, startProduction: 0, revenueByCrop: emptyCropRecord() },
+    year: {
+      current: toDate(0).year,
+      startRevenue: 0,
+      startExpenses: 0,
+      startProduction: 0,
+      revenueByCrop: emptyCropRecord(),
+    },
     lastYearSummary: null,
     notifications: [],
   };
@@ -213,7 +226,12 @@ export class Game implements SimContext {
     const revenue = round(s.stats.totalRevenue - s.year.startRevenue, 2);
     const expenses = round(s.stats.totalExpenses - s.year.startExpenses, 2);
     let best: CropId | null = null;
-    for (const id of CROP_IDS) if ((s.year.revenueByCrop[id] ?? 0) > 0 && (!best || s.year.revenueByCrop[id] > s.year.revenueByCrop[best])) best = id;
+    for (const id of CROP_IDS)
+      if (
+        (s.year.revenueByCrop[id] ?? 0) > 0 &&
+        (!best || s.year.revenueByCrop[id] > s.year.revenueByCrop[best])
+      )
+        best = id;
     const summary: YearSummary = {
       year: s.year.current,
       revenue,
@@ -295,7 +313,9 @@ export class Game implements SimContext {
 
   // ---------------------------------------------------------- dev cheats ---
 
-  cheat(kind: 'money' | 'day' | 'month' | 'rain' | 'drought' | 'ripen' | 'priceUp' | 'priceDown' | 'event'): void {
+  cheat(
+    kind: 'money' | 'day' | 'month' | 'rain' | 'drought' | 'ripen' | 'priceUp' | 'priceDown' | 'event',
+  ): void {
     const s = this.state;
     switch (kind) {
       case 'money':

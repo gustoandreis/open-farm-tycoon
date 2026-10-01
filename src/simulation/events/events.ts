@@ -70,9 +70,15 @@ export function triggerEvent(ctx: SimContext, def: EventDef): void {
       return;
     }
   }
-  notify(ctx, def.positive ? 'success' : def.category === 'weather' ? 'weather' : 'warning', `event.${def.id}.title`, {
-    desc: `@event.${def.id}.desc`,
-  });
+  notify(
+    ctx,
+    def.positive ? 'success' : def.category === 'weather' ? 'weather' : 'warning',
+    'notif.eventBody',
+    {
+      title: `@event.${def.id}.title`,
+      desc: `@event.${def.id}.desc`,
+    },
+  );
   ctx.emit('analytics', { name: 'game_event', props: { id: def.id } });
 }
 

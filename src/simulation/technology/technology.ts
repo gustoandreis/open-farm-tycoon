@@ -37,7 +37,12 @@ export function canResearch(state: GameState, id: string): ResearchCheck {
 export function research(ctx: SimContext, id: string): ResearchCheck {
   const check = canResearch(ctx.state, id);
   if (!check.ok) return check;
-  addTransaction(ctx, 'technology', { key: 'ledger.research', params: { tech: `@tech.${id}.name` } }, -check.cost);
+  addTransaction(
+    ctx,
+    'technology',
+    { key: 'ledger.research', params: { tech: `@tech.${id}.name` } },
+    -check.cost,
+  );
   ctx.state.technologies.push(id);
   notify(ctx, 'success', 'notif.researched', { tech: `@tech.${id}.name` });
   ctx.emit('analytics', { name: 'technology_unlocked', props: { id } });

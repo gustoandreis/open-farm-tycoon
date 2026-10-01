@@ -10,7 +10,8 @@ import type { GameState, Worker, WorkerAssignment } from '../types';
 export function generateCandidate(state: GameState, rng: Rng): Worker {
   const skill = rng.int(1, 5);
   const efficiency = round(clamp(0.6 + skill * 0.15 + rng.range(-0.1, 0.1), 0.5, 1.5), 2);
-  const salary = Math.round((WORKERS.minSalary + WORKERS.salaryPerSkill * (skill - 1) + rng.range(-150, 150)) / 10) * 10;
+  const salary =
+    Math.round((WORKERS.minSalary + WORKERS.salaryPerSkill * (skill - 1) + rng.range(-150, 150)) / 10) * 10;
   return {
     id: state.nextId++,
     name: `${rng.pick(WORKER_NAMES)} ${String.fromCharCode(65 + rng.int(0, 25))}.`,
@@ -56,7 +57,12 @@ export function fireWorker(ctx: SimContext, workerId: number): WorkerCheck {
   if (idx < 0) return { ok: false, reason: 'err.unknown' };
   const w = s.workers[idx];
   s.workers.splice(idx, 1);
-  addTransaction(ctx, 'salaries', { key: 'ledger.severance', params: { name: w.name } }, -w.salary * WORKERS.severanceMonths);
+  addTransaction(
+    ctx,
+    'salaries',
+    { key: 'ledger.severance', params: { name: w.name } },
+    -w.salary * WORKERS.severanceMonths,
+  );
   notify(ctx, 'info', 'notif.fired', { name: w.name });
   return { ok: true };
 }
@@ -78,7 +84,10 @@ export function workforce(state: GameState, a: WorkerAssignment): number {
 }
 
 export function fieldLaborDiscount(state: GameState): number {
-  return Math.min(WORKERS.maxFieldLaborDiscount, workersBy(state, 'field').length * WORKERS.fieldLaborDiscount);
+  return Math.min(
+    WORKERS.maxFieldLaborDiscount,
+    workersBy(state, 'field').length * WORKERS.fieldLaborDiscount,
+  );
 }
 
 export function monthlyPayroll(state: GameState): number {
@@ -87,5 +96,11 @@ export function monthlyPayroll(state: GameState): number {
 
 export function paySalaries(ctx: SimContext): void {
   const total = monthlyPayroll(ctx.state);
-  if (total > 0) addTransaction(ctx, 'salaries', { key: 'ledger.salaries', params: { count: ctx.state.workers.length } }, -total);
+  if (total > 0)
+    addTransaction(
+      ctx,
+      'salaries',
+      { key: 'ledger.salaries', params: { count: ctx.state.workers.length } },
+      -total,
+    );
 }

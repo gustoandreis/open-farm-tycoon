@@ -34,7 +34,8 @@ export function addTransaction(
       : description.key,
     amount: value,
   });
-  if (s.ledger.length > GAME_CONFIG.ledgerLimit) s.ledger.splice(0, s.ledger.length - GAME_CONFIG.ledgerLimit);
+  if (s.ledger.length > GAME_CONFIG.ledgerLimit)
+    s.ledger.splice(0, s.ledger.length - GAME_CONFIG.ledgerLimit);
   const key = monthKey(s.day);
   const month = (s.monthly[key] ??= {});
   month[category] = round((month[category] ?? 0) + value, 2);
@@ -72,7 +73,12 @@ export function summarizeMonth(state: GameState, key: string): MonthSummary {
     if (v > 0) revenue += v;
     else expenses -= v;
   }
-  return { revenue: round(revenue, 2), expenses: round(expenses, 2), result: round(revenue - expenses, 2), byCategory };
+  return {
+    revenue: round(revenue, 2),
+    expenses: round(expenses, 2),
+    result: round(revenue - expenses, 2),
+    byCategory,
+  };
 }
 
 /** Simplified income statement (DRE) for a set of month keys. */
@@ -89,8 +95,7 @@ export interface IncomeStatement {
 }
 
 export function incomeStatement(state: GameState, keys: string[]): IncomeStatement {
-  const get = (cat: LedgerCategory) =>
-    keys.reduce((s, k) => s + (state.monthly[k]?.[cat] ?? 0), 0);
+  const get = (cat: LedgerCategory) => keys.reduce((s, k) => s + (state.monthly[k]?.[cat] ?? 0), 0);
   const revenue = get('sales') + Math.max(0, get('event'));
   const farmCosts = -(get('seeds') + get('fieldwork') + get('irrigation'));
   const salaries = -get('salaries');

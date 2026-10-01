@@ -1,10 +1,4 @@
-import {
-  BUILDING_EFFECTS,
-  DIFFICULTY,
-  MACHINE_RULES,
-  MACHINES,
-  REGIONS,
-} from '../../data/balance';
+import { BUILDING_EFFECTS, DIFFICULTY, MACHINE_RULES, MACHINES, REGIONS } from '../../data/balance';
 import { clamp, round } from '../../utils/math';
 import { countBuildings, machineSlots } from '../buildings/buildings';
 import type { SimContext } from '../context';
@@ -14,7 +8,9 @@ import { techMult } from '../technology/technology';
 import type { GameState, Machine, MachineType } from '../types';
 
 export function machinePrice(state: GameState, type: MachineType): number {
-  return Math.round(MACHINES[type].purchasePrice * DIFFICULTY[state.difficulty].costMult * REGIONS[state.region].costMult);
+  return Math.round(
+    MACHINES[type].purchasePrice * DIFFICULTY[state.difficulty].costMult * REGIONS[state.region].costMult,
+  );
 }
 
 /** Best available (not broken) machine of a type, or null. */
@@ -39,11 +35,18 @@ export function fuelPenalty(m: Machine): number {
 
 export function repairCost(state: GameState, m: Machine): number {
   const def = MACHINES[m.type];
-  const workshop = countBuildings(state, 'workshop') > 0 ? 1 - BUILDING_EFFECTS.workshopMaintenanceDiscount : 1;
+  const workshop =
+    countBuildings(state, 'workshop') > 0 ? 1 - BUILDING_EFFECTS.workshopMaintenanceDiscount : 1;
   const surcharge = m.broken ? 1 + MACHINE_RULES.brokenRepairSurcharge : 1;
   const missing = 100 - clamp(m.condition, 0, 100);
   return Math.round(
-    (def.maintenanceCost * missing * workshop * surcharge * techMult(state, 'maintenanceMult') * DIFFICULTY[state.difficulty].costMult) / 100,
+    (def.maintenanceCost *
+      missing *
+      workshop *
+      surcharge *
+      techMult(state, 'maintenanceMult') *
+      DIFFICULTY[state.difficulty].costMult) /
+      100,
   );
 }
 
@@ -55,7 +58,8 @@ export type MachineCheck = { ok: true; cost: number } | { ok: false; reason: str
 
 export function canBuyMachine(state: GameState, type: MachineType): MachineCheck {
   const cost = machinePrice(state, type);
-  if (state.progression.level < MACHINES[type].unlockLevel) return { ok: false, reason: 'err.levelRequired', cost };
+  if (state.progression.level < MACHINES[type].unlockLevel)
+    return { ok: false, reason: 'err.levelRequired', cost };
   if (state.money < cost) return { ok: false, reason: 'err.noMoney', cost };
   return { ok: true, cost };
 }
@@ -64,7 +68,12 @@ export function buyMachine(ctx: SimContext, type: MachineType): MachineCheck {
   const s = ctx.state;
   const check = canBuyMachine(s, type);
   if (!check.ok) return check;
-  addTransaction(ctx, 'machines', { key: 'ledger.buyMachine', params: { machine: `@machine.${type}` } }, -check.cost);
+  addTransaction(
+    ctx,
+    'machines',
+    { key: 'ledger.buyMachine', params: { machine: `@machine.${type}` } },
+    -check.cost,
+  );
   s.machines.push({
     id: s.nextId++,
     type,
@@ -89,7 +98,12 @@ export function sellMachine(ctx: SimContext, id: number): boolean {
   if (idx < 0) return false;
   const m = s.machines[idx];
   s.machines.splice(idx, 1);
-  addTransaction(ctx, 'machines', { key: 'ledger.sellMachine', params: { machine: `@machine.${m.type}` } }, resaleValue(m));
+  addTransaction(
+    ctx,
+    'machines',
+    { key: 'ledger.sellMachine', params: { machine: `@machine.${m.type}` } },
+    resaleValue(m),
+  );
   ctx.emit('machinesChanged', undefined);
   return true;
 }
@@ -101,7 +115,12 @@ export function maintainMachine(ctx: SimContext, id: number): MachineCheck {
   const cost = repairCost(s, m);
   if (cost <= 0 && !m.broken) return { ok: false, reason: 'err.nothingToDo', cost: 0 };
   if (s.money < cost) return { ok: false, reason: 'err.noMoney', cost };
-  addTransaction(ctx, 'maintenance', { key: 'ledger.maintenance', params: { machine: `@machine.${m.type}` } }, -cost);
+  addTransaction(
+    ctx,
+    'maintenance',
+    { key: 'ledger.maintenance', params: { machine: `@machine.${m.type}` } },
+    -cost,
+  );
   m.condition = 100;
   m.broken = false;
   ctx.emit('machinesChanged', undefined);
@@ -125,13 +144,24 @@ export function refuelMachine(ctx: SimContext, m: Machine): number {
  * Applies the use of a machine for `tiles` tiles: consumes fuel (auto refuel,
  * registered as expense), wears it down and may break it.
  */
-export function useMachine(ctx: SimContext, m: Machine, tiles: number, fuelPerTile: number, wearPerTile: number): void {
+export function useMachine(
+  ctx: SimContext,
+  m: Machine,
+  tiles: number,
+  fuelPerTile: number,
+  wearPerTile: number,
+): void {
   const fuelNeeded = tiles * fuelPerTile * fuelPenalty(m);
   if (m.fuel < fuelNeeded) refuelMachine(ctx, m);
   // If still not enough (huge operation), pay the extra directly.
   if (m.fuel < fuelNeeded) {
     const extra = fuelNeeded - m.fuel;
-    addTransaction(ctx, 'fuel', { key: 'ledger.fuel', params: { machine: `@machine.${m.type}` } }, -extra * ctx.state.market.fuelPrice);
+    addTransaction(
+      ctx,
+      'fuel',
+      { key: 'ledger.fuel', params: { machine: `@machine.${m.type}` } },
+      -extra * ctx.state.market.fuelPrice,
+    );
     m.fuel = 0;
   } else {
     m.fuel = round(m.fuel - fuelNeeded, 2);
@@ -139,7 +169,9 @@ export function useMachine(ctx: SimContext, m: Machine, tiles: number, fuelPerTi
   m.condition = round(clamp(m.condition - tiles * wearPerTile * techMult(ctx.state, 'wearMult'), 0, 100), 2);
   m.workDone += tiles;
   if (m.condition < MACHINE_RULES.breakdownThreshold) {
-    const p = ((MACHINE_RULES.breakdownThreshold - m.condition) / MACHINE_RULES.breakdownThreshold) * MACHINE_RULES.breakdownChanceAtZero;
+    const p =
+      ((MACHINE_RULES.breakdownThreshold - m.condition) / MACHINE_RULES.breakdownThreshold) *
+      MACHINE_RULES.breakdownChanceAtZero;
     if (ctx.rng.chance(p)) {
       m.broken = true;
       notify(ctx, 'error', 'notif.machineBroken', { machine: `@machine.${m.type}` });
@@ -167,5 +199,10 @@ export function updateMachinesDaily(ctx: SimContext, maintenanceBonus: number): 
 }
 
 export function machinesMonthlyUpkeep(state: GameState): number {
-  return Math.round(state.machines.reduce((s, m) => s + MACHINES[m.type].maintenanceCost * MACHINE_RULES.monthlyUpkeepFactor, 0));
+  return Math.round(
+    state.machines.reduce(
+      (s, m) => s + MACHINES[m.type].maintenanceCost * MACHINE_RULES.monthlyUpkeepFactor,
+      0,
+    ),
+  );
 }

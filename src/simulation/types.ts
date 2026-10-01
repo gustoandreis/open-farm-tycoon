@@ -156,7 +156,8 @@ export interface Notification {
   text: string;
 }
 
-export type NotificationCategory = 'info' | 'success' | 'warning' | 'error' | 'weather' | 'market' | 'economy';
+export type NotificationCategory =
+  'info' | 'success' | 'warning' | 'error' | 'weather' | 'market' | 'economy';
 
 export interface Stats {
   daysPlayed: number;
@@ -239,7 +240,13 @@ export interface GameState {
   tutorial: TutorialState;
   /** Capacity already used today per operation. */
   workUsed: Record<FieldOperation, number>;
-  year: { current: number; startRevenue: number; startExpenses: number; startProduction: number; revenueByCrop: Record<CropId, number> };
+  year: {
+    current: number;
+    startRevenue: number;
+    startExpenses: number;
+    startProduction: number;
+    revenueByCrop: Record<CropId, number>;
+  };
   lastYearSummary: YearSummary | null;
   notifications: Notification[];
 }

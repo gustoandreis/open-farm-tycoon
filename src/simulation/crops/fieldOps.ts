@@ -83,7 +83,14 @@ export function capacityLeft(state: GameState, op: FieldOperation): number {
   return Math.max(0, totalCapacity(state, op) - (state.workUsed[op] ?? 0));
 }
 
-function isEligible(state: GameState, op: FieldOperation, t: Tile, x: number, y: number, cropId: CropId | null): boolean {
+function isEligible(
+  state: GameState,
+  op: FieldOperation,
+  t: Tile,
+  x: number,
+  y: number,
+  cropId: CropId | null,
+): boolean {
   if (!isOwned(state, x, y) || t.building !== null) return false;
   switch (op) {
     case 'prepare':
@@ -103,7 +110,12 @@ export function laborCostPerTile(state: GameState, op: FieldOperation, machine: 
   return base * (1 - fieldLaborDiscount(state)) * costMult(state);
 }
 
-export function previewOperation(state: GameState, op: FieldOperation, rect: Rect, cropId: CropId | null = null): OpPreview {
+export function previewOperation(
+  state: GameState,
+  op: FieldOperation,
+  rect: Rect,
+  cropId: CropId | null = null,
+): OpPreview {
   const r = normalizeRect(rect);
   const def = OPERATIONS[op];
   const machine = def.machine ? workingMachine(state, def.machine) : null;
@@ -120,7 +132,8 @@ export function previewOperation(state: GameState, op: FieldOperation, rect: Rec
 
   if (op === 'plant') {
     if (!cropId) return emptyPreview(op, cropId, 'err.noCrop', capLeft);
-    if (state.progression.level < CROPS[cropId].unlockLevel) return emptyPreview(op, cropId, 'err.levelRequired', capLeft);
+    if (state.progression.level < CROPS[cropId].unlockLevel)
+      return emptyPreview(op, cropId, 'err.levelRequired', capLeft);
   }
   const perTileLabor = laborCostPerTile(state, op, machine);
   const seedPerTile = cropId ? CROPS[cropId].seedCost * eventSeedMult(state) * costMult(state) : 0;
@@ -235,10 +248,23 @@ export interface OpResult {
 }
 
 /** Executes a field operation over a rectangle. All validations happen here (not in the UI). */
-export function executeOperation(ctx: SimContext, op: FieldOperation, rect: Rect, cropId: CropId | null = null): OpResult {
+export function executeOperation(
+  ctx: SimContext,
+  op: FieldOperation,
+  rect: Rect,
+  cropId: CropId | null = null,
+): OpResult {
   const s = ctx.state;
   const p = previewOperation(s, op, rect, cropId);
-  const fail = (reason: string): OpResult => ({ ok: false, reason, count: 0, cost: 0, tonnes: 0, overflowSold: 0, overflowRevenue: 0 });
+  const fail = (reason: string): OpResult => ({
+    ok: false,
+    reason,
+    count: 0,
+    cost: 0,
+    tonnes: 0,
+    overflowSold: 0,
+    overflowRevenue: 0,
+  });
   if (!p.ok) return fail(p.reason ?? 'err.unknown');
 
   const def = OPERATIONS[op];
@@ -249,7 +275,12 @@ export function executeOperation(ctx: SimContext, op: FieldOperation, rect: Rect
 
   // 1) Charge seeds and labour (fuel is charged by the machine use).
   if (p.seedCost > 0) {
-    addTransaction(ctx, 'seeds', { key: 'ledger.seeds', params: { crop: `@crop.${cropId}`, count: p.count } }, -p.seedCost);
+    addTransaction(
+      ctx,
+      'seeds',
+      { key: 'ledger.seeds', params: { crop: `@crop.${cropId}`, count: p.count } },
+      -p.seedCost,
+    );
   }
   if (p.laborCost > 0) {
     addTransaction(
@@ -311,7 +342,10 @@ export function executeOperation(ctx: SimContext, op: FieldOperation, rect: Rect
           const price = s.market.commodities[crop.cropId].price * STORAGE.overflowSaleFactor;
           overflowSold += over;
           overflowRevenue += over * price;
-          s.year.revenueByCrop[crop.cropId] = round((s.year.revenueByCrop[crop.cropId] ?? 0) + over * price, 2);
+          s.year.revenueByCrop[crop.cropId] = round(
+            (s.year.revenueByCrop[crop.cropId] ?? 0) + over * price,
+            2,
+          );
         }
         tonnes += y;
         s.stats.production[crop.cropId] = round(s.stats.production[crop.cropId] + y, 3);
@@ -327,28 +361,52 @@ export function executeOperation(ctx: SimContext, op: FieldOperation, rect: Rect
   }
 
   if (overflowRevenue > 0) {
-    addTransaction(ctx, 'sales', { key: 'ledger.overflowSale', params: { tonnes: round(overflowSold, 1) } }, round(overflowRevenue, 2));
+    addTransaction(
+      ctx,
+      'sales',
+      { key: 'ledger.overflowSale', params: { tonnes: round(overflowSold, 1) } },
+      round(overflowRevenue, 2),
+    );
     s.stats.salesRevenue = round(s.stats.salesRevenue + overflowRevenue, 2);
     notify(ctx, 'warning', 'notif.storageFull', { tonnes: round(overflowSold, 1) });
   }
 
   ctx.emit('tilesChanged', p.tiles);
   const costKey = op === 'plant' ? 'fb.costSeeds' : 'fb.cost';
-  if (p.totalCost > 0) ctx.emit('feedback', { key: costKey, params: { amount: Math.round(p.totalCost) }, x: cx, y: cy - 1, tone: 'bad' });
+  if (p.totalCost > 0)
+    ctx.emit('feedback', {
+      key: costKey,
+      params: { amount: Math.round(p.totalCost) },
+      x: cx,
+      y: cy - 1,
+      tone: 'bad',
+    });
 
   switch (op) {
     case 'prepare':
       ctx.emit('feedback', { key: 'fb.prepared', params: { count: p.count }, x: cx, y: cy, tone: 'info' });
       break;
     case 'plant':
-      ctx.emit('feedback', { key: 'fb.planted', params: { crop: `@crop.${cropId}` }, x: cx, y: cy, tone: 'good' });
+      ctx.emit('feedback', {
+        key: 'fb.planted',
+        params: { crop: `@crop.${cropId}` },
+        x: cx,
+        y: cy,
+        tone: 'good',
+      });
       ctx.emit('analytics', { name: 'crop_planted', props: { crop: cropId ?? '', tiles: p.count } });
       break;
     case 'irrigate':
       ctx.emit('feedback', { key: 'fb.irrigated', params: { count: p.count }, x: cx, y: cy, tone: 'info' });
       break;
     case 'harvest': {
-      ctx.emit('feedback', { key: 'fb.harvested', params: { tonnes: round(tonnes, 1) }, x: cx, y: cy, tone: 'good' });
+      ctx.emit('feedback', {
+        key: 'fb.harvested',
+        params: { tonnes: round(tonnes, 1) },
+        x: cx,
+        y: cy,
+        tone: 'good',
+      });
       addXp(ctx, PROGRESSION.xpHarvestPerTile * p.count);
       ctx.emit('analytics', { name: 'crop_harvested', props: { tiles: p.count, tonnes: round(tonnes, 1) } });
       const fill = storageUsed(s) / Math.max(1, storageCapacity(s));
@@ -358,5 +416,13 @@ export function executeOperation(ctx: SimContext, op: FieldOperation, rect: Rect
     }
   }
   checkProgress(ctx);
-  return { ok: true, reason: null, count: p.count, cost: p.totalCost, tonnes: round(tonnes, 2), overflowSold, overflowRevenue };
+  return {
+    ok: true,
+    reason: null,
+    count: p.count,
+    cost: p.totalCost,
+    tonnes: round(tonnes, 2),
+    overflowSold,
+    overflowRevenue,
+  };
 }

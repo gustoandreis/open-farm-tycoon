@@ -5,6 +5,7 @@ import type { SimContext } from '../context';
 import { addTransaction } from '../economy/ledger';
 import { buildingsValue, landValue, machinesValue, totalDebt } from '../economy/valuation';
 import { notify } from '../notifications';
+import { checkProgress } from '../progression/progression';
 import { DAYS_PER_MONTH } from '../time/calendar';
 import type { GameState, Loan } from '../types';
 
@@ -53,7 +54,8 @@ export function takeLoan(ctx: SimContext, amount: number, termMonths: number): L
   const s = ctx.state;
   const a = Math.round(amount);
   if (!Number.isFinite(a) || a < LOANS.minAmount) return { ok: false, reason: 'err.loanTooSmall' };
-  if (!(LOANS.terms as readonly number[]).includes(termMonths)) return { ok: false, reason: 'err.invalidTerm' };
+  if (!(LOANS.terms as readonly number[]).includes(termMonths))
+    return { ok: false, reason: 'err.invalidTerm' };
   if (a > availableCredit(s)) return { ok: false, reason: 'err.creditLimit' };
   const loan = loanQuote(s, a, termMonths);
   loan.id = s.nextId++;
@@ -73,6 +75,7 @@ function settle(ctx: SimContext, loan: Loan): void {
   s.stats.loansRepaid++;
   notify(ctx, 'success', 'notif.loanPaid');
   ctx.emit('analytics', { name: 'loan_paid', props: { principal: loan.principal } });
+  checkProgress(ctx);
 }
 
 /** Early repayment (amortização antecipada). Keeps remaining months, recomputes installment. */
@@ -89,7 +92,10 @@ export function prepayLoan(ctx: SimContext, loanId: number, amount: number): Loa
     loan.remainingBalance = 0;
     settle(ctx, loan);
   } else {
-    loan.payment = round(annuityPayment(loan.remainingBalance, loan.interestRate / 12, loan.remainingMonths), 2);
+    loan.payment = round(
+      annuityPayment(loan.remainingBalance, loan.interestRate / 12, loan.remainingMonths),
+      2,
+    );
   }
   ctx.emit('requestSave', 'prepay');
   return { ok: true, loan };
@@ -114,7 +120,8 @@ export function processLoanPayments(ctx: SimContext): void {
     loan.nextPaymentDay += DAYS_PER_MONTH;
     if (loan.remainingBalance <= 0.01 || loan.remainingMonths === 0) {
       // Final installment absorbs any rounding remainder.
-      if (loan.remainingBalance > 0) addTransaction(ctx, 'loanOut', { key: 'ledger.installment' }, -loan.remainingBalance);
+      if (loan.remainingBalance > 0)
+        addTransaction(ctx, 'loanOut', { key: 'ledger.installment' }, -loan.remainingBalance);
       loan.remainingBalance = 0;
       settle(ctx, loan);
     }

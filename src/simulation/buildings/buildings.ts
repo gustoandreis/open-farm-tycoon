@@ -24,11 +24,15 @@ export function machineSlots(state: GameState): number {
 }
 
 export function workerSlots(state: GameState): number {
-  return BUILDING_EFFECTS.baseWorkerSlots + BUILDING_EFFECTS.officeWorkerSlots * countBuildings(state, 'office');
+  return (
+    BUILDING_EFFECTS.baseWorkerSlots + BUILDING_EFFECTS.officeWorkerSlots * countBuildings(state, 'office')
+  );
 }
 
 export function buildingCost(state: GameState, type: BuildingType): number {
-  return Math.round(BUILDINGS[type].price * DIFFICULTY[state.difficulty].costMult * REGIONS[state.region].costMult);
+  return Math.round(
+    BUILDINGS[type].price * DIFFICULTY[state.difficulty].costMult * REGIONS[state.region].costMult,
+  );
 }
 
 /** True when tile (x,y) is inside the radius of any irrigation station. */
@@ -83,7 +87,12 @@ export function placeBuilding(state: GameState, type: BuildingType, x: number, y
 export function build(ctx: SimContext, type: BuildingType, x: number, y: number): PlacementCheck {
   const check = canPlaceBuilding(ctx.state, type, x, y);
   if (!check.ok) return check;
-  addTransaction(ctx, 'buildings', { key: 'ledger.build', params: { building: `@building.${type}` } }, -check.cost);
+  addTransaction(
+    ctx,
+    'buildings',
+    { key: 'ledger.build', params: { building: `@building.${type}` } },
+    -check.cost,
+  );
   placeBuilding(ctx.state, type, x, y);
   ctx.state.stats.buildingsBuilt++;
   const size = BUILDINGS[type].size;
@@ -93,7 +102,13 @@ export function build(ctx: SimContext, type: BuildingType, x: number, y: number)
   ctx.emit('tilesChanged', changed);
   ctx.emit('buildingsChanged', undefined);
   notify(ctx, 'success', 'notif.built', { building: `@building.${type}` });
-  ctx.emit('feedback', { key: 'fb.built', params: { building: `@building.${type}` }, x: x + 1, y, tone: 'info' });
+  ctx.emit('feedback', {
+    key: 'fb.built',
+    params: { building: `@building.${type}` },
+    x: x + 1,
+    y,
+    tone: 'info',
+  });
   ctx.emit('analytics', { name: 'building_built', props: { type } });
   ctx.emit('requestSave', 'build');
   return check;

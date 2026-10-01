@@ -87,7 +87,10 @@ export function parcelPrice(state: GameState, parcel: Parcel, costMult: number):
   });
   const owned = state.parcels.filter((p) => p.owned).length;
   const region = REGIONS[state.region];
-  return Math.round((value * region.landPriceMult * costMult * (1 + LAND.expansionPremium * (owned - 1))) / 10) * 10;
+  return (
+    Math.round((value * region.landPriceMult * costMult * (1 + LAND.expansionPremium * (owned - 1))) / 10) *
+    10
+  );
 }
 
 /** Simple value noise for fertility patterns. */
@@ -154,7 +157,8 @@ export function generateWorld(rng: Rng, region: RegionId): GeneratedWorld {
   for (let y = 0; y < height; y++) {
     rx += rng.int(-1, 1);
     rx = clamp(rx, 4, width - 5);
-    if (rx > startPx - 4 && rx < startPx + size + 3) rx = rx < startPx + size / 2 ? startPx - 4 : startPx + size + 3;
+    if (rx > startPx - 4 && rx < startPx + size + 3)
+      rx = rx < startPx + size / 2 ? startPx - 4 : startPx + size + 3;
     const widthHere = 2 + (rng.chance(0.3) ? 1 : 0);
     for (let dx = 0; dx < widthHere; dx++) {
       const t = at(rx + dx, y);

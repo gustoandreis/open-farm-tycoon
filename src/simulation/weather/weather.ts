@@ -64,12 +64,10 @@ export function advanceWeather(ctx: SimContext): void {
   s.weather.today = next ? next.actual : rollWeather(ctx.rng, toDate(s.day).season, s.region, bias, null);
   if (bias && ctx.rng.chance(0.6)) s.weather.today = bias;
   // Refresh forecast accuracy as days approach.
-  s.weather.forecast = s.weather.forecast.map(
-    (d: WeatherDay, i): WeatherDay => ({
-      actual: d.actual,
-      shown: d.shown === d.actual ? d.shown : shownFor(ctx.rng, d.actual, i + 1),
-    }),
-  );
+  s.weather.forecast = s.weather.forecast.map((d: WeatherDay, i): WeatherDay => ({
+    actual: d.actual,
+    shown: d.shown === d.actual ? d.shown : shownFor(ctx.rng, d.actual, i + 1),
+  }));
   const last = s.weather.forecast[s.weather.forecast.length - 1]?.actual ?? s.weather.today;
   while (s.weather.forecast.length < FORECAST_DAYS) {
     const k = s.weather.forecast.length + 1;
@@ -77,7 +75,7 @@ export function advanceWeather(ctx: SimContext): void {
     s.weather.forecast.push({ actual, shown: shownFor(ctx.rng, actual, k) });
   }
   const tomorrow = s.weather.forecast[0]?.shown;
-  if (tomorrow === 'storm' || tomorrow === 'heavyRain' || tomorrow === 'drought') {
+  if (tomorrow === 'storm' || (tomorrow === 'drought' && s.weather.today !== 'drought')) {
     notify(ctx, 'weather', 'notif.forecastAlert', { weather: `@weather.${tomorrow}` });
   }
 }

@@ -26,7 +26,8 @@ export function growUntilReady(game: Game, rect: Rect, maxDays = 200): number {
     if (allReady) return d;
     // Keep crops watered so the test does not depend on weather luck.
     for (let y = rect.y0; y <= rect.y1; y++)
-      for (let x = rect.x0; x <= rect.x1; x++) game.state.map.tiles[y * game.state.map.width + x].moisture = 60;
+      for (let x = rect.x0; x <= rect.x1; x++)
+        game.state.map.tiles[y * game.state.map.width + x].moisture = 60;
     game.advanceDay();
   }
   return maxDays;

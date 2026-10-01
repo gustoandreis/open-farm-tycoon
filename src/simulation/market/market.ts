@@ -16,7 +16,9 @@ export function seasonalFactor(crop: CropId, month: number): number {
 export function targetPrice(state: GameState, crop: CropId): number {
   const m = state.market.commodities[crop];
   const month = toDate(state.day).month;
-  return CROPS[crop].baseMarketPrice * seasonalFactor(crop, month) * m.supplyFactor * eventPriceMult(state, crop);
+  return (
+    CROPS[crop].baseMarketPrice * seasonalFactor(crop, month) * m.supplyFactor * eventPriceMult(state, crop)
+  );
 }
 
 export function initMarket(state: GameState, rng: Rng): void {
@@ -46,16 +48,23 @@ export function updateMarket(ctx: SimContext): void {
     m.supplyFactor = clamp(m.supplyFactor + (1 - m.supplyFactor) * MARKET.supplyRecovery, 0.5, 1.2);
     const target = targetPrice(s, id);
     const base = CROPS[id].baseMarketPrice;
-    let p = m.price + (target - m.price) * MARKET.reversion + m.price * CROPS[id].volatility * volMult * ctx.rng.normal();
+    let p =
+      m.price +
+      (target - m.price) * MARKET.reversion +
+      m.price * CROPS[id].volatility * volMult * ctx.rng.normal();
     // Avoid absurd daily moves: cap at 6% per day.
     p = clamp(p, m.price * 0.94, m.price * 1.06);
     p = clamp(p, base * MARKET.minFactor, base * MARKET.maxFactor);
     m.price = round(p, 2);
     m.history.push(m.price);
-    if (m.history.length > GAME_CONFIG.marketHistoryDays) m.history.splice(0, m.history.length - GAME_CONFIG.marketHistoryDays);
+    if (m.history.length > GAME_CONFIG.marketHistoryDays)
+      m.history.splice(0, m.history.length - GAME_CONFIG.marketHistoryDays);
   }
   const fuelTarget = MARKET.fuelBase * eventFuelMult(s);
-  let f = s.market.fuelPrice + (fuelTarget - s.market.fuelPrice) * 0.1 + s.market.fuelPrice * MARKET.fuelVolatility * ctx.rng.normal();
+  let f =
+    s.market.fuelPrice +
+    (fuelTarget - s.market.fuelPrice) * 0.1 +
+    s.market.fuelPrice * MARKET.fuelVolatility * ctx.rng.normal();
   f = clamp(f, MARKET.fuelBase * 0.6, MARKET.fuelBase * 2.5);
   s.market.fuelPrice = round(f, 3);
   s.market.fuelHistory.push(s.market.fuelPrice);

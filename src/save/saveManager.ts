@@ -33,7 +33,8 @@ function defaultStorage(): StorageLike | null {
   }
 }
 
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+const isObj = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null && !Array.isArray(v);
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 
 /** Structural validation of a loaded state. Returns an error string or null when valid. */
@@ -49,11 +50,13 @@ export function validateState(raw: unknown): string | null {
   if (!isObj(s.map) || !Array.isArray(s.map.tiles)) return 'map invalid';
   if (s.map.tiles.length !== s.map.width * s.map.height) return 'map size mismatch';
   for (const t of s.map.tiles) {
-    if (!isObj(t) || !isNum(t.moisture) || !isNum(t.fertility) || typeof t.terrain !== 'string') return 'tile invalid';
+    if (!isObj(t) || !isNum(t.moisture) || !isNum(t.fertility) || typeof t.terrain !== 'string')
+      return 'tile invalid';
   }
   if (!Array.isArray(s.parcels) || s.parcels.length === 0) return 'parcels invalid';
   if (!s.parcels.some((p) => p.owned)) return 'no owned parcel';
-  if (!Array.isArray(s.buildings) || !Array.isArray(s.machines) || !Array.isArray(s.workers)) return 'entities invalid';
+  if (!Array.isArray(s.buildings) || !Array.isArray(s.machines) || !Array.isArray(s.workers))
+    return 'entities invalid';
   if (!Array.isArray(s.loans) || !Array.isArray(s.ledger)) return 'finance invalid';
   if (!isObj(s.inventory)) return 'inventory invalid';
   for (const id of CROP_IDS) {
@@ -63,7 +66,8 @@ export function validateState(raw: unknown): string | null {
   if (!isObj(s.market) || !isObj(s.market.commodities)) return 'market invalid';
   for (const id of CROP_IDS) {
     const m = (s.market.commodities as Record<string, unknown>)[id];
-    if (!isObj(m) || !isNum(m.price) || m.price <= 0 || !Array.isArray(m.history)) return `market ${id} invalid`;
+    if (!isObj(m) || !isNum(m.price) || m.price <= 0 || !Array.isArray(m.history))
+      return `market ${id} invalid`;
   }
   if (!isObj(s.weather) || !Array.isArray(s.weather.forecast)) return 'weather invalid';
   if (!isObj(s.progression) || !isNum(s.progression.level)) return 'progression invalid';
@@ -119,7 +123,8 @@ export class SaveManager {
     try {
       const env = JSON.parse(raw) as unknown;
       if (!isObj(env)) return { status: 'corrupt', error: 'envelope invalid' };
-      if (env.saveVersion !== GAME_CONFIG.saveVersion) return { status: 'corrupt', error: 'unsupported save version' };
+      if (env.saveVersion !== GAME_CONFIG.saveVersion)
+        return { status: 'corrupt', error: 'unsupported save version' };
       const err = validateState(env.state);
       if (err) return { status: 'corrupt', error: err };
       return { status: 'ok', state: env.state as GameState, savedAt: isNum(env.savedAt) ? env.savedAt : 0 };

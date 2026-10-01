@@ -400,12 +400,37 @@ export const WEATHER: Record<
   WeatherType,
   { moisture: number; growth: number; damage: number; weights: Record<Season, number> }
 > = {
-  sunny: { moisture: -3.5, growth: 1.05, damage: 0, weights: { spring: 30, summer: 30, autumn: 30, winter: 30 } },
-  cloudy: { moisture: -1.5, growth: 1.0, damage: 0, weights: { spring: 25, summer: 18, autumn: 28, winter: 28 } },
-  rain: { moisture: 18, growth: 1.02, damage: 0, weights: { spring: 22, summer: 24, autumn: 18, winter: 12 } },
-  heavyRain: { moisture: 32, growth: 0.95, damage: 0.5, weights: { spring: 6, summer: 9, autumn: 5, winter: 3 } },
+  sunny: {
+    moisture: -3.5,
+    growth: 1.05,
+    damage: 0,
+    weights: { spring: 30, summer: 30, autumn: 30, winter: 30 },
+  },
+  cloudy: {
+    moisture: -1.5,
+    growth: 1.0,
+    damage: 0,
+    weights: { spring: 25, summer: 18, autumn: 28, winter: 28 },
+  },
+  rain: {
+    moisture: 18,
+    growth: 1.02,
+    damage: 0,
+    weights: { spring: 22, summer: 24, autumn: 18, winter: 12 },
+  },
+  heavyRain: {
+    moisture: 32,
+    growth: 0.95,
+    damage: 0.5,
+    weights: { spring: 6, summer: 9, autumn: 5, winter: 3 },
+  },
   heat: { moisture: -7, growth: 0.92, damage: 0.3, weights: { spring: 6, summer: 14, autumn: 4, winter: 0 } },
-  drought: { moisture: -9, growth: 0.85, damage: 0.6, weights: { spring: 3, summer: 4, autumn: 4, winter: 2 } },
+  drought: {
+    moisture: -9,
+    growth: 0.85,
+    damage: 0.6,
+    weights: { spring: 3, summer: 4, autumn: 4, winter: 2 },
+  },
   cold: { moisture: -1, growth: 0.8, damage: 0, weights: { spring: 4, summer: 0, autumn: 8, winter: 25 } },
   storm: { moisture: 26, growth: 0.9, damage: 2.5, weights: { spring: 4, summer: 5, autumn: 3, winter: 1 } },
 };
@@ -527,8 +552,22 @@ export interface EventDef {
 }
 
 export const EVENTS: EventDef[] = [
-  { id: 'soyRally', probability: 0.006, duration: 20, positive: true, category: 'market', effects: { priceMult: { soy: 1.25 } } },
-  { id: 'cornDrop', probability: 0.006, duration: 18, positive: false, category: 'market', effects: { priceMult: { corn: 0.8 } } },
+  {
+    id: 'soyRally',
+    probability: 0.006,
+    duration: 20,
+    positive: true,
+    category: 'market',
+    effects: { priceMult: { soy: 1.25 } },
+  },
+  {
+    id: 'cornDrop',
+    probability: 0.006,
+    duration: 18,
+    positive: false,
+    category: 'market',
+    effects: { priceMult: { corn: 0.8 } },
+  },
   {
     id: 'drought',
     probability: 0.005,
@@ -547,8 +586,22 @@ export const EVENTS: EventDef[] = [
     seasons: ['spring', 'summer', 'autumn'],
     effects: { weatherBias: 'heavyRain' },
   },
-  { id: 'fuelSpike', probability: 0.005, duration: 15, positive: false, category: 'economy', effects: { fuelMult: 1.45 } },
-  { id: 'seedSpike', probability: 0.004, duration: 15, positive: false, category: 'economy', effects: { seedMult: 1.3 } },
+  {
+    id: 'fuelSpike',
+    probability: 0.005,
+    duration: 15,
+    positive: false,
+    category: 'economy',
+    effects: { fuelMult: 1.45 },
+  },
+  {
+    id: 'seedSpike',
+    probability: 0.004,
+    duration: 15,
+    positive: false,
+    category: 'economy',
+    effects: { seedMult: 1.3 },
+  },
   {
     id: 'pest',
     probability: 0.005,
@@ -558,11 +611,46 @@ export const EVENTS: EventDef[] = [
     seasons: ['spring', 'summer', 'autumn'],
     effects: { cropDamagePerDay: 1.8 },
   },
-  { id: 'subsidy', probability: 0.003, duration: 1, positive: true, category: 'economy', effects: { cashPerOwnedTile: 35 } },
-  { id: 'machineBreak', probability: 0.003, duration: 1, positive: false, category: 'economy', effects: { breakMachine: true } },
-  { id: 'demandBoom', probability: 0.004, duration: 15, positive: true, category: 'market', effects: { allPricesMult: 1.12 } },
-  { id: 'wheatExport', probability: 0.004, duration: 15, positive: true, category: 'market', effects: { priceMult: { wheat: 1.2 } } },
-  { id: 'potatoGlut', probability: 0.004, duration: 15, positive: false, category: 'market', effects: { priceMult: { potato: 0.8 } } },
+  {
+    id: 'subsidy',
+    probability: 0.003,
+    duration: 1,
+    positive: true,
+    category: 'economy',
+    effects: { cashPerOwnedTile: 35 },
+  },
+  {
+    id: 'machineBreak',
+    probability: 0.003,
+    duration: 1,
+    positive: false,
+    category: 'economy',
+    effects: { breakMachine: true },
+  },
+  {
+    id: 'demandBoom',
+    probability: 0.004,
+    duration: 15,
+    positive: true,
+    category: 'market',
+    effects: { allPricesMult: 1.12 },
+  },
+  {
+    id: 'wheatExport',
+    probability: 0.004,
+    duration: 15,
+    positive: true,
+    category: 'market',
+    effects: { priceMult: { wheat: 1.2 } },
+  },
+  {
+    id: 'potatoGlut',
+    probability: 0.004,
+    duration: 15,
+    positive: false,
+    category: 'market',
+    effects: { priceMult: { potato: 0.8 } },
+  },
 ];
 
 export const EVENT_RULES = {
@@ -592,9 +680,27 @@ export interface TechDef {
 
 export const TECHNOLOGIES: TechDef[] = [
   { id: 'improvedSeeds', cost: 9_000, level: 2, requires: [], effects: { yieldMult: 1.08 } },
-  { id: 'precisionAg', cost: 22_000, level: 4, requires: ['improvedSeeds'], effects: { yieldMult: 1.05, capacityMult: 1.15 } },
-  { id: 'efficientIrrigation', cost: 10_000, level: 2, requires: [], effects: { irrigationCostMult: 0.75, waterUseMult: 0.85 } },
-  { id: 'preventiveMaintenance', cost: 8_000, level: 2, requires: [], effects: { maintenanceMult: 0.8, wearMult: 0.75 } },
+  {
+    id: 'precisionAg',
+    cost: 22_000,
+    level: 4,
+    requires: ['improvedSeeds'],
+    effects: { yieldMult: 1.05, capacityMult: 1.15 },
+  },
+  {
+    id: 'efficientIrrigation',
+    cost: 10_000,
+    level: 2,
+    requires: [],
+    effects: { irrigationCostMult: 0.75, waterUseMult: 0.85 },
+  },
+  {
+    id: 'preventiveMaintenance',
+    cost: 8_000,
+    level: 2,
+    requires: [],
+    effects: { maintenanceMult: 0.8, wearMult: 0.75 },
+  },
   { id: 'logistics', cost: 15_000, level: 3, requires: [], effects: { salePriceMult: 1.05 } },
   { id: 'advancedStorage', cost: 12_000, level: 3, requires: ['logistics'], effects: { storageMult: 1.25 } },
 ];
@@ -641,7 +747,14 @@ export interface RegionDef {
 
 /** Brazil mode: regions only modify climate/prices for now (architecture for future maps). */
 export const REGIONS: Record<RegionId, RegionDef> = {
-  parana: { id: 'parana', landPriceMult: 1, yieldMult: {}, costMult: 1, weatherBias: {}, startMonthOffset: 0 },
+  parana: {
+    id: 'parana',
+    landPriceMult: 1,
+    yieldMult: {},
+    costMult: 1,
+    weatherBias: {},
+    startMonthOffset: 0,
+  },
   rs: {
     id: 'rs',
     landPriceMult: 0.9,

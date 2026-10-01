@@ -67,7 +67,8 @@ export function updateSoilAndCrops(ctx: SimContext): SoilDayResult {
       dryPlanted.push(i);
     }
     // Healthy crops slowly recover when a sprayer is available.
-    if (sprayer && t.crop.health < 100 && pestDamage === 0) t.crop.health = Math.min(100, t.crop.health + 0.5);
+    if (sprayer && t.crop.health < 100 && pestDamage === 0)
+      t.crop.health = Math.min(100, t.crop.health + 0.5);
     const r = growCropOneDay(s, t, season, weather, pestDamage);
     if (r.died) {
       t.crop = null;
@@ -82,7 +83,12 @@ export function updateSoilAndCrops(ctx: SimContext): SoilDayResult {
 
   if (stationTiles > 0) {
     const cost = stationTiles * IRRIGATION.stationCost * techMult(s, 'irrigationCostMult');
-    addTransaction(ctx, 'irrigation', { key: 'ledger.autoIrrigation', params: { count: stationTiles } }, -round(cost, 2));
+    addTransaction(
+      ctx,
+      'irrigation',
+      { key: 'ledger.autoIrrigation', params: { count: stationTiles } },
+      -round(cost, 2),
+    );
   }
 
   // Irrigation workers water the driest planted tiles.
@@ -109,12 +115,18 @@ export function updateSoilAndCrops(ctx: SimContext): SoilDayResult {
     // Spraying during pests consumes fuel proportional to planted area.
     const planted = s.map.tiles.filter((t) => t.crop).length;
     const fuel = planted * 0.4;
-    addTransaction(ctx, 'fuel', { key: 'ledger.fuel', params: { machine: '@machine.sprayer' } }, -round(fuel * s.market.fuelPrice, 2));
+    addTransaction(
+      ctx,
+      'fuel',
+      { key: 'ledger.fuel', params: { machine: '@machine.sprayer' } },
+      -round(fuel * s.market.fuelPrice, 2),
+    );
     sprayer.condition = Math.max(0, sprayer.condition - 0.2);
   }
 
   if (becameReady > 0) notify(ctx, 'success', 'notif.harvestReady', { count: becameReady });
   if (died > 0) notify(ctx, 'error', 'notif.cropsDied', { count: died });
-  if (dryPlanted.length > 0 && s.day % 3 === 0) notify(ctx, 'weather', 'notif.drySoil', { count: dryPlanted.length });
+  if (dryPlanted.length > 0 && s.day % 3 === 0)
+    notify(ctx, 'weather', 'notif.drySoil', { count: dryPlanted.length });
   return { changed, becameReady, died, autoIrrigated: stationTiles };
 }

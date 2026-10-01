@@ -23,7 +23,8 @@ export const CROP_STAGES: CropStage[] = ['seed', 'sprout', 'early', 'mid', 'matu
 
 export function moistureGrowthFactor(moisture: number): number {
   if (moisture <= SOIL.criticalThreshold) return 0.15;
-  if (moisture < SOIL.dryThreshold) return 0.4 + ((moisture - SOIL.criticalThreshold) / (SOIL.dryThreshold - SOIL.criticalThreshold)) * 0.5;
+  if (moisture < SOIL.dryThreshold)
+    return 0.4 + ((moisture - SOIL.criticalThreshold) / (SOIL.dryThreshold - SOIL.criticalThreshold)) * 0.5;
   if (moisture > SOIL.waterlogThreshold) return 0.85;
   return 1;
 }
@@ -75,10 +76,11 @@ export function growCropOneDay(
 
   let damage = extraDamage;
   if (tile.moisture <= SOIL.criticalThreshold) damage += 2.5;
-  if (weather === 'cold' || (season === 'winter' && weather === 'cloudy')) damage += def.frostSensitivity * (season === 'winter' ? 1 : 0.4);
+  if (weather === 'cold' || (season === 'winter' && weather === 'cloudy'))
+    damage += def.frostSensitivity * (season === 'winter' ? 1 : 0.4);
   if (weather === 'storm') damage += 2.5;
   if (weather === 'heavyRain' && tile.moisture >= SOIL.waterlogThreshold) damage += 1;
-  if (crop.readyDay !== null && state.day - crop.readyDay > 15) damage += 2; // left too long in the field
+  if (crop.readyDay !== null && state.day - crop.readyDay > 15) damage += 1; // left too long in the field
   crop.health = round(clamp(crop.health - damage, 0, 100), 2);
 
   let becameReady = false;
